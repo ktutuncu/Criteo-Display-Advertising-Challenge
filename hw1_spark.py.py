@@ -1,8 +1,5 @@
 #
-# Data Science CS 5304
-# Homework 1
-# Group 32: Michael Wang, Praveen Gupta, Kerem Tutuncu
-# 
+# Cornell Tech Data Science CS 5304
 
 # coding: utf-8
 
