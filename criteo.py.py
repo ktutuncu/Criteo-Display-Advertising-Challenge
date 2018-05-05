@@ -1,9 +1,4 @@
-#
-# Cornell Tech Data Science CS 5304
 
-# coding: utf-8
-
-# In[37]:
 
 import sys, operator
 import numpy as np
@@ -37,11 +32,11 @@ print sc._conf.getAll()
 # sc.set('spark.driver.memory', '5g')
 sqlContext = SQLContext(sc)
 
-sample_dir = '/Users/mike/Documents/Projects/5304-DataScience/hw1/dac_sample/dac_sample.txt'
-training_dir = "/Users/mike/Documents/Projects/5304-DataScience/hw1/dac/train_10m.txt"
+sample_dir = '/Users/kerem/Documents/Projects/AdvertisingChallenge/dac_sample.txt'
+training_dir = "/Users/kerem/Documents/Projects/AdvertisingChallenge/train_10m.txt"
 
 
-# In[2]:
+
 
 # load data as rdd
 rdd = sc.textFile(sample_dir)
@@ -51,7 +46,7 @@ rdd = rdd.map(lambda l: l.split("\t")) #.sample(False, 0.1)
 train_rdd, validation_rdd, test_rdd = rdd.randomSplit([0.5, 0.2, 0.3])
 
 
-# In[3]:
+
 
 # get summary stats and plot histograms
 def get_stats(data, plot=False):
@@ -83,8 +78,6 @@ def get_stats(data, plot=False):
 
 # get_stats(rdd, True)
 
-
-# In[4]:
 
 def remove_features(data, features_remaining):
     data = data.map(lambda r: [r[i] for i in features_remaining])
@@ -131,8 +124,6 @@ def get_int_stats(data, num_ints):
         stds += [col.stdev()]
     return int_means, stds
 
-
-# In[ ]:
 
 # Assemble ints and one hot encode categorical
 def preprocess(data, data_all, num_ints, num_cats, encoder_pipeline=None):
@@ -191,7 +182,7 @@ def standardize(data, num_ints, means=None, stds=None):
 #     result = scaler.transform(int_rdd.map(lambda x: Vectors.dense(x)))
 #     return result, scaler
     
-# Features...assemble!
+
 def assemble_features(data, num_ints, num_cats):
     # Assemble all features
     feature_assembler = VectorAssembler(
@@ -232,7 +223,6 @@ def evaluate(preds):
     return evaluator.evaluate(preds)
 
 
-# In[5]:
 
 # feature engineering and cleaning of null values
 train_rdd_clean, num_ints, num_cats, features_remaining = feature_elimination(train_rdd, 0.3)
@@ -257,7 +247,6 @@ all_df_clean = all_rdd_clean.toDF(schema)
 print all_rdd_clean.count()
 
 
-# In[16]:
 
 print 'Standardizing...'
 train_rdd_clean, means, stds = standardize(train_rdd_clean, num_ints, means, stds)
@@ -267,15 +256,10 @@ test_rdd_clean, _, _ = standardize(test_rdd_clean, num_ints, means, stds)
 test_df_clean = test_rdd_clean.toDF(schema)
 
 
-# In[17]:
-
 print 'One hot...'
 train_df_clean, encoder_pipeline = preprocess(train_df_clean, all_df_clean, num_ints, num_cats)
 test_df_clean, _ = preprocess(test_df_clean, None, num_ints, num_cats, encoder_pipeline)
 train_df_clean.first()
-
-
-# In[18]:
 
 print 'Assembling...'
 assembled = assemble_features(train_df_clean, num_ints, num_cats)
@@ -286,41 +270,35 @@ print 'Done'
 # test_assembled.first()
 
 
-# In[72]:
+
 
 print 'Random Forest...'
 preds = random_forest(assembled, test_assembled)
 print evaluate(preds)
 
 
-# In[35]:
 
 print 'Logistic...'
 preds_lr = logistic(assembled, test_assembled)
 print evaluate(preds_lr)
 
 
-# In[49]:
 
 predictionAndLabels = preds.select('label', 'prediction').rdd.map(lambda r: (r[0], r[1]))
 predictionAndLabels2 = preds_lr.select('label', 'prediction').rdd.map(lambda r: (r[0], r[1]))
 
-
-# In[50]:
 
 metrics = BinaryClassificationMetrics(predictionAndLabels)
 print metrics.areaUnderPR
 print metrics.areaUnderROC
 
 
-# In[54]:
-
 metrics2 = BinaryClassificationMetrics(predictionAndLabels2)
 print metrics.areaUnderPR
 print metrics.areaUnderROC
 
 
-# In[58]:
+
 
 label_tuples = predictionAndLabels.collect()
 label_tuples2 = predictionAndLabels2.collect()
